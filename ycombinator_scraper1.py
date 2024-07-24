@@ -31,27 +31,34 @@ wait = WebDriverWait(driver, 10)
 def extract_additional_info(url):
     driver.get(url)
     founders_data = []
-    try:
-        # Esperar a que la sección de fundadores esté presente
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "section div.space-y-5 div.flex-row")))
-        founders_info = driver.find_elements(By.CSS_SELECTOR, "section div.space-y-5 div.flex-row")
+    # Esperar a que la sección de fundadores esté presente
 
-        for founder in founders_info:
-            try:
-                name_element = founder.find_element(By.CSS_SELECTOR, "h3.text-lg.font-bold")
-                name = name_element.text.split(",")[0].strip()  # Obtener el nombre del fundador
-                position = name_element.text.split(",")[1].strip()  # Obtener el cargo del fundador
-                linkedin_element = founder.find_element(By.CSS_SELECTOR, "a[aria-label='LinkedIn profile']")
-                linkedin_url = linkedin_element.get_attribute("href")
-                founders_data.append({
-                    "Fundador nombre": name,
-                    "Cargo del fundador": position,
-                    "LinkedIn Personaldel fundador": linkedin_url
-                })
-            except (NoSuchElementException, StaleElementReferenceException) as e:
-                print(f"Error extracting founder info: {e}")
-    except (NoSuchElementException, StaleElementReferenceException, NoSuchWindowException) as e:
-        print(f"Error loading founders section: {e}")
+    wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, 'leading-snug')))
+    wait.until(
+        EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div.leading-snug>div.font-bold")))
+    wait.until(
+        EC.visibility_of_all_elements_located((By.XPATH, "//*[contains(@aria-label, 'LinkedIn profile')]")))
+    founders_info = driver.find_elements(By.CLASS_NAME, 'leading-snug')
+
+    for founder in founders_info:
+        try:
+            wait.until(EC.visibility_of_all_elements_located((By.XPATH, "//*[contains(@aria-label, 'LinkedIn profile')]")))
+
+            name_element = founder.find_elements(By.TAG_NAME, "div")
+            name = name_element[0].text  # Obtener el nombre del fundador
+            position = ''
+            if len(name_element) >= 3:
+                position = name_element[1].text  # Obtener el cargo del fundador
+
+            linkedin_element = founder.find_element(By.XPATH, "//*[contains(@aria-label, 'LinkedIn profile')]")
+            linkedin_url = linkedin_element.get_attribute("href")
+            founders_data.append({
+                "Fundador nombre": name,
+                "Cargo del fundador": position,
+                "LinkedIn Personaldel fundador": linkedin_url
+            })
+        except (NoSuchElementException, StaleElementReferenceException) as e:
+            print(f"Error extracting founder info: {e}")
     return founders_data
 
 # Lista para almacenar los datos de las empresas
