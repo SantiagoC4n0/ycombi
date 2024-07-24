@@ -27,7 +27,7 @@ options.headless = True  # Ejecuta el navegador en modo headless (sin interfaz g
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 wait = WebDriverWait(driver, 10)
 
-# Función para extraer información adicional de la página de la empresa
+# Función para extraer información adicional
 def extract_additional_info(url):
     driver.get(url)
     founders_data = []
@@ -54,7 +54,7 @@ def extract_additional_info(url):
         print(f"Error loading founders section: {e}")
     return founders_data
 
-# Lista para almacenar todos los datos de las empresas
+# Lista para almacenar los datos de las empresas
 all_companies = []
 
 # Iterar sobre todas las páginas de resultados
@@ -65,7 +65,7 @@ while True:
     hits = data.get('results', [])[0].get('hits', [])
     
     if not hits:
-        break  # Salir del bucle si no hay más resultados
+        break
     
     for hit in hits:
         company_url = f"https://www.ycombinator.com/companies/{hit.get('slug')}"
@@ -75,9 +75,9 @@ while True:
             company = {
                 "Nombre empresa": hit.get('name'),
                 "Hiring (Yes/No)": hit.get('isHiring'),
-                "Correo Fundador": "",  # Este dato no está en la respuesta de Algolia
+                "Correo Fundador": "",
                 "URL statup": hit.get('website'),
-                "LinkedIn Empresa": "",  # Este dato no está en la respuesta de Algolia
+                "LinkedIn Empresa": "",
                 "Fundador nombre": founder["Fundador nombre"],
                 "Cargo del fundador": founder["Cargo del fundador"],
                 "LinkedIn Personaldel fundador": founder["LinkedIn Personaldel fundador"],
@@ -87,11 +87,7 @@ while True:
     
     page += 1
 
-# Cierra el navegador
 driver.quit()
 
-# Crea un DataFrame con los datos obtenidos
 df = pd.DataFrame(all_companies)
-
-# Guarda los datos en un archivo Excel
 df.to_excel("ycombinator_companies.xlsx", index=False)
